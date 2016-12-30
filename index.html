@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  body {
+    margin: 0;
+  }
+
+  #container {
+    position: relative;
+  }
+
+  svg {
+    position: absolute;
+    top: 80px;
+    left: 0;
+  }
+
+  canvas {
+    position: absolute;
+    top: 80px;
+    left: 0;
+  }
+
+  svg image {
+    opacity: 0.2;
+    filter: alpha(opacity=20); /* For IE8 and earlier */
+}
+</style>
+<div id="container">
+  <svg></svg>
+  <canvas></canvas>
+</div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-tile.v0.0.min.js"></script>
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script>
+  var pi = Math.PI,
+    tau = 2 * pi,
+    radius = 2.5;
+
+  var width = Math.max(960, window.innerWidth),
+    height = Math.max(500, window.innerHeight);
+
+  // Initialize the projection to fit the world in a 1×1 square centered at the origin.
+  var projection = d3.geoMercator()
+    .scale(1 / tau)
+    .translate([0, 0]);
+
+  var canvas = d3.select("canvas").attr("width", width).attr("height", height),
+    context = canvas.node().getContext("2d");
+
+  var tile = d3.tile()
+    .size([width, height]);
+
+  var color = d3.scaleSequential(d3.interpolateRdBu).domain([50, 0]);
+
+  var zoom = d3.zoom()
+    .scaleExtent([1 << 19, 1 << 26])
+    .on("zoom", zoomed);
+
+  var svg = d3.select("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  var raster = svg.append("g");
+
+  d3.json("wanhua-projection.json", function(error, taipei) {
+    if (error) throw error;
+
+    // Compute the projected initial center.
+    var center = projection([121.567841, 25.066262]);
+
+    window.taipei = taipei.features;
+
+    canvas.call(zoom)
+      .call(zoom.transform, d3.zoomIdentity
+        .translate(width / 2, height / 2)
+        .scale(1 << 20)
+        .translate(-center[0], -center[1]));
+  });
+
+  function zoomed() {
+    var transform = d3.event.transform;
+
+    var tiles = tile
+      .scale(transform.k)
+      .translate([transform.x, transform.y])
+      ();
+
+    context.save();
+    context.clearRect(0, 0, width, height);
+    context.translate(transform.x, transform.y);
+    context.scale(transform.k, transform.k);
+    draw(transform);
+    context.restore();
+
+    var image = raster
+      .attr("transform", stringify(tiles.scale, tiles.translate))
+      .selectAll("image")
+      .data(tiles, function(d) {
+        return d;
+      });
+
+    image.exit().remove();
+
+    image.enter().append("image")
+      .attr("xlink:href", function(d) {
+        return "http://" + "abc" [d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png";
+      })
+      .attr("x", function(d) {
+        return d[0] * 256;
+      })
+      .attr("y", function(d) {
+        return d[1] * 256;
+      })
+      .attr("width", 256)
+      .attr("height", 256);
+  }
+
+  function draw(transform) {
+    taipei.forEach(function(point) {
+      var fillColor = color(+point.properties.age),
+        side = radius / transform.k;
+      point = point.geometry.coordinates;
+      context.beginPath();
+      context.rect(point[0], point[1], side, side);
+      context.closePath();
+      context.fillStyle = fillColor;
+      context.fill();
+    });
+  }
+
+  function stringify(scale, translate) {
+    var k = scale / 256,
+      r = scale % 1 ? Number : Math.round;
+    return "translate(" + r(translate[0] * scale) + "," + r(translate[1] * scale) + ") scale(" + k + ")";
+  }
+</script>

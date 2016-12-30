@@ -1,0 +1,2 @@
+shp2json test.shp -o wanhua.json
+geoproject 'd3.geoMercator().scale(1 / 6.283185307179586).translate([0, 0])' < wanhua.json > wanhua-projection.json
