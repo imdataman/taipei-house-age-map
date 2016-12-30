@@ -33,7 +33,6 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-tile.v0.0.min.js"></script>
 <script src="https://d3js.org/topojson.v1.min.js"></script>
-<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script>
   var pi = Math.PI,
     tau = 2 * pi,
@@ -52,8 +51,6 @@
 
   var tile = d3.tile()
     .size([width, height]);
-
-  var color = d3.scaleSequential(d3.interpolateRdBu).domain([50, 0]);
 
   var zoom = d3.zoom()
     .scaleExtent([1 << 19, 1 << 26])
@@ -120,7 +117,7 @@
 
   function draw(transform) {
     taipei.forEach(function(point) {
-      var fillColor = color(+point.properties.age),
+      var fillColor = point.properties.color,
         side = radius / transform.k;
       point = point.geometry.coordinates;
       context.beginPath();
