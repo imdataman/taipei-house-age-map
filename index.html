@@ -106,7 +106,7 @@
 
     image.enter().append("image")
       .attr("xlink:href", function(d) {
-        return "http://" + "abc" [d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png";
+        return "https://" + "abc" [d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png";
       })
       .attr("x", function(d) {
         return d[0] * 256;
