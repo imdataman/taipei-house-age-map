@@ -1,89 +1,116 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-  body {
+body {
     margin: 0;
-  }
+}
 
-  #container {
+#container {
     position: relative;
-  }
+}
 
-  svg {
+svg {
     position: absolute;
-    top: 80px;
+    top: 0px;
     left: 0;
-  }
+}
 
-  canvas {
+canvas {
     position: absolute;
-    top: 80px;
+    top: 0px;
     left: 0;
-  }
+}
 
-  svg image {
+select {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+}
+
+svg image {
     opacity: 0.2;
-    filter: alpha(opacity=20); /* For IE8 and earlier */
+    filter: alpha(opacity=20);
+    /* For IE8 and earlier */
 }
 </style>
 <div id="container">
-  <svg></svg>
-  <canvas></canvas>
+    <svg></svg>
+    <canvas></canvas>
+    <select>
+        <option value='信義區' selected="selected">信義區</option>
+        <option value='大同區'>大同區</option>
+        <option value='內湖區'>內湖區</option>
+        <option value='中正區'>中正區</option>
+        <option value='萬華區'>萬華區</option>
+        <option value='北投區'>北投區</option>
+        <option value='士林區'>士林區</option>
+        <option value='文山區'>文山區</option>
+        <option value='南港區'>南港區</option>
+        <option value='大安區'>大安區</option>
+        <option value='中山區'>中山區</option>
+        <option value='松山區'>松山區</option>
+    </select>
 </div>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-tile.v0.0.min.js"></script>
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script>
-  var pi = Math.PI,
+var pi = Math.PI,
     tau = 2 * pi,
     radius = 2.5;
 
-  var width = Math.max(960, window.innerWidth),
+var width = Math.max(960, window.innerWidth),
     height = Math.max(500, window.innerHeight);
 
-  // Initialize the projection to fit the world in a 1×1 square centered at the origin.
-  var projection = d3.geoMercator()
+// Initialize the projection to fit the world in a 1×1 square centered at the origin.
+var projection = d3.geoMercator()
     .scale(1 / tau)
     .translate([0, 0]);
 
-  var canvas = d3.select("canvas").attr("width", width).attr("height", height),
+var canvas = d3.select("canvas").attr("width", width).attr("height", height),
     context = canvas.node().getContext("2d");
 
-  var tile = d3.tile()
+var tile = d3.tile()
     .size([width, height]);
 
-  var zoom = d3.zoom()
-    .scaleExtent([1 << 19, 1 << 26])
+var zoom = d3.zoom()
+    .scaleExtent([1 << 19, 1 << 25])
     .on("zoom", zoomed);
 
-  var svg = d3.select("svg")
+var svg = d3.select("svg")
     .attr("width", width)
     .attr("height", height);
 
-  var raster = svg.append("g");
+var raster = svg.append("g");
 
-  d3.json("tp-projection.json", function(error, taipei) {
+function init(error, taipei) {
     if (error) throw error;
 
     // Compute the projected initial center.
-    var center = projection([121.567841, 25.066262]);
+    window.taipei = taipei;
+    var center = [d3.mean(taipei, function(d) {
+        return d.geometry.coordinates["0"];
+    }), d3.mean(taipei, function(d) {
+        return d.geometry.coordinates["1"];
+    })];
 
-    window.taipei = taipei.features;
+    d3.select("select")
+        .on("change", changeTown);
 
     canvas.call(zoom)
-      .call(zoom.transform, d3.zoomIdentity
-        .translate(width / 2, height / 2)
-        .scale(1 << 20)
-        .translate(-center[0], -center[1]));
-  });
+        .call(zoom.transform, d3.zoomIdentity
+            .translate(width / 2, height / 2)
+            .scale(1 << 22)
+            .translate(-center[0], -center[1]));
+}
 
-  function zoomed() {
+function zoomed() {
     var transform = d3.event.transform;
 
     var tiles = tile
-      .scale(transform.k)
-      .translate([transform.x, transform.y])
-      ();
+        .scale(transform.k)
+        .translate([transform.x, transform.y])
+        ();
 
     context.save();
     context.clearRect(0, 0, width, height);
@@ -93,44 +120,52 @@
     context.restore();
 
     var image = raster
-      .attr("transform", stringify(tiles.scale, tiles.translate))
-      .selectAll("image")
-      .data(tiles, function(d) {
-        return d;
-      });
+        .attr("transform", stringify(tiles.scale, tiles.translate))
+        .selectAll("image")
+        .data(tiles, function(d) {
+            return d;
+        });
 
     image.exit().remove();
 
     image.enter().append("image")
-      .attr("xlink:href", function(d) {
-        return "https://" + "abc" [d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png";
-      })
-      .attr("x", function(d) {
-        return d[0] * 256;
-      })
-      .attr("y", function(d) {
-        return d[1] * 256;
-      })
-      .attr("width", 256)
-      .attr("height", 256);
-  }
+        .attr("xlink:href", function(d) {
+            return "https://" + "abc" [d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png";
+        })
+        .attr("x", function(d) {
+            return d[0] * 256;
+        })
+        .attr("y", function(d) {
+            return d[1] * 256;
+        })
+        .attr("width", 256)
+        .attr("height", 256);
+}
 
-  function draw(transform) {
+function draw(transform) {
     taipei.forEach(function(point) {
-      var fillColor = point.properties.color,
-        side = radius / transform.k;
-      point = point.geometry.coordinates;
-      context.beginPath();
-      context.rect(point[0], point[1], side, side);
-      context.closePath();
-      context.fillStyle = fillColor;
-      context.fill();
+        var fillColor = point.properties.color,
+            side = radius / transform.k;
+        point = point.geometry.coordinates;
+        context.beginPath();
+        context.rect(point[0], point[1], side, side);
+        context.closePath();
+        context.fillStyle = fillColor;
+        context.fill();
     });
-  }
+}
 
-  function stringify(scale, translate) {
+function stringify(scale, translate) {
     var k = scale / 256,
-      r = scale % 1 ? Number : Math.round;
+        r = scale % 1 ? Number : Math.round;
     return "translate(" + r(translate[0] * scale) + "," + r(translate[1] * scale) + ") scale(" + k + ")";
-  }
+}
+
+function changeTown() {
+    var townSelected = this.options[this.selectedIndex].value,
+        townFilePath = "data/" + townSelected + ".json";
+    d3.json(townFilePath, init);
+}
+
+d3.json("data/信義區.json", init);
 </script>
