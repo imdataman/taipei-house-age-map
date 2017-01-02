@@ -34,6 +34,10 @@
         font-size: 18px;
     }
     
+    .fb-share-button {
+        display: inline-block;
+    }
+    
     #container {
         position: relative;
         height: 500px;
@@ -118,8 +122,20 @@
 </head>
 
 <body>
+    <div id="fb-root"></div>
+    <script>
+    (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/zh_TW/sdk.js#xfbml=1&version=v2.8";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+    </script>
     <div id="header">
         <h1>台北市屋齡地圖</h1>
+        <div class="fb-share-button" data-href="https://imdataman.github.io/taipei-house-age-map/" data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fimdataman.github.io%2Ftaipei-house-age-map%2F&amp;src=sdkpreparse">分享</a></div>
         <p>走在台北市，是不是常常遇見不知道多少年歷史的老房子呢？想買房成家的你，是不是也想知道台北市各地區的屋齡水準呢？</p>
         <p>以下的「台北市屋齡地圖」，利用<a href="http://data.taipei/opendata/datalist/datasetMeta?oid=c876ff02-af2e-4eb8-bd33-d444f5052733" target="_blank">台北市政府開放的全市建築物使用執照資料</a>，找出台北市20餘萬個門牌地址所在的建築物的屋齡，並將門牌地址轉成經緯度，繪製到地圖上，用視覺化的方式帶讀者了解台北市屋齡。</p>
         <p>使用說明：
@@ -152,7 +168,7 @@
     </div>
     <div id="footer">
         <p>本地圖使用的原始資料和程式碼已上傳<a href="https://github.com/imdataman/taipei-house-age-map" target="_blank">Github</a>。作者：<a href="https://www.facebook.com/imDataMan/" target="_blank">林佳賢</a>。</p>
-        <p>註：約2000個門牌地址無法轉換，轉換成功率仍有99%。無法轉換的門牌主要位在天母、社子兩個地區，原因是舊地址無法轉新地址。</p>
+        <p>註：約2000個門牌地址無法轉換，轉換成功率約99%。無法轉換的門牌主要位在天母、社子兩個地區，原因是舊地址無法轉新地址。</p>
     </div>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-tile.v0.0.min.js"></script>
