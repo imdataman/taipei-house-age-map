@@ -9,10 +9,16 @@ body {
     position: relative;
 }
 
-svg {
+svg#rasterMap {
     position: absolute;
     top: 0px;
     left: 0;
+}
+
+svg#colorPallete {
+    position: absolute;
+    top: 100px;
+    left: 65px;
 }
 
 canvas {
@@ -27,15 +33,16 @@ select {
     left: 50px;
 }
 
-svg image {
+#rasterMap image {
     opacity: 0.2;
     filter: alpha(opacity=20);
     /* For IE8 and earlier */
 }
 </style>
 <div id="container">
-    <svg></svg>
+    <svg id="rasterMap"></svg>
     <canvas></canvas>
+    <svg id="colorPallete"></svg>
     <select>
         <option value='信義區' selected="selected">信義區</option>
         <option value='大同區'>大同區</option>
@@ -57,7 +64,10 @@ svg image {
 <script>
 var pi = Math.PI,
     tau = 2 * pi,
-    radius = 2.5;
+    radius = 2.5,
+    colorPallete = ['#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#d1e5f0', '#92c5de', '#4393c3', '#2166ac', '#053061'],
+    palleteText = ['45年以上', '41-45年', '36-40年', '31-35年', '26-30年', '21-25年', '16-20年', '11-15年', '6-10年', '5年以下'],
+    colorSelected = [];
 
 var width = Math.max(960, window.innerWidth),
     height = Math.max(500, window.innerHeight);
@@ -83,11 +93,49 @@ var svg = d3.select("svg")
 
 var raster = svg.append("g");
 
+var colorGuide = d3.select("#colorPallete")
+    .attr("width", 110)
+    .attr("height", 220)
+    .append("g");
+
+colorGuide.selectAll("rect")
+    .data(colorPallete)
+    .enter()
+    .append("rect")
+    .attr("x", 0)
+    .attr("y", function(d, i) {
+        return i * 22;
+    })
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", function(d) {
+        return d;
+    })
+    .on("click", filterColor);
+
+colorGuide.selectAll("text")
+    .data(palleteText)
+    .enter()
+    .append("text")
+    .attr("x", 25)
+    .attr("y", function(d, i) {
+        return i * 22 + 19;
+    })
+    .style("font-size", 20)
+    .text(function(d) {
+        return d;
+    });
+
+
 function init(error, taipei) {
     if (error) throw error;
-
-    // Compute the projected initial center.
-    window.taipei = taipei;
+    if (typeof colorSelected !== 'undefined' && colorSelected.length !== 0) {
+        window.taipei = taipei.filter(function(d) {
+            return colorSelected.indexOf(d.properties.color) !== -1;
+        });
+    } else {
+        window.taipei = taipei;
+    }
     var center = [d3.mean(taipei, function(d) {
         return d.geometry.coordinates["0"];
     }), d3.mean(taipei, function(d) {
@@ -164,6 +212,20 @@ function stringify(scale, translate) {
 function changeTown() {
     var townSelected = this.options[this.selectedIndex].value,
         townFilePath = "data/" + townSelected + ".json";
+    colorSelected = [];
+    d3.json(townFilePath, init);
+}
+
+function filterColor(d) {
+    var selectHtml = d3.select("select").node(),
+        townSelected = selectHtml.options[selectHtml.selectedIndex].value,
+        townFilePath = "data/" + townSelected + ".json",
+        colorIndex = colorSelected.indexOf(d);
+    if (colorIndex === -1) {
+        colorSelected.push(d);
+    } else {
+        colorSelected.splice(colorIndex, colorIndex + 1);
+    }
     d3.json(townFilePath, init);
 }
 
