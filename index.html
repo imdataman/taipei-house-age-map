@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body {
     margin: 0;
@@ -42,12 +43,25 @@ select {
     /* For IE8 and earlier */
 }
 
-
-/*@media and (max-width: 480px) {
-    body {
-        background-color: lightgreen;
+@media only screen and (max-width: 415px) {
+    svg#rasterMap {
+        left: 12px;
     }
-}*/
+    svg#colorPallete {
+        top: 20px;
+        left: 20px;
+    }
+    svg#colorPallete text {
+        text-anchor: middle;
+    }
+    canvas {
+        left: 12px;
+    }
+    select {
+        top: 40px;
+        left: 30px;
+    }
+}
 </style>
 <div id="container">
     <svg id="rasterMap"></svg>
@@ -77,9 +91,10 @@ var pi = Math.PI,
     radius = 2.5,
     colorPallete = ['#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#d1e5f0', '#92c5de', '#4393c3', '#2166ac', '#053061'],
     palleteText = ['45年以上', '41-45年', '36-40年', '31-35年', '26-30年', '21-25年', '16-20年', '11-15年', '6-10年', '5年以下'],
+    palleteTextShort = ['45', '40', '35', '30', '25', '20', '15', '10', '5'],
     colorSelected = [];
 
-var width = window.innerWidth - 100,
+var width = window.innerWidth > 414 ? window.innerWidth - 100 : window.innerWidth - 25,
     height = 500;
 
 // Initialize the projection to fit the world in a 1×1 square centered at the origin.
@@ -103,38 +118,71 @@ var svg = d3.select("svg")
 
 var raster = svg.append("g");
 
-var colorGuide = d3.select("#colorPallete")
-    .attr("width", 110)
-    .attr("height", 220)
-    .append("g");
+var colorGuide = d3.select("#colorPallete");
 
-colorGuide.selectAll("rect")
+var colorRect = colorGuide.append("g")
+    .selectAll("rect")
     .data(colorPallete)
     .enter()
     .append("rect")
-    .attr("x", 0)
-    .attr("y", function(d, i) {
-        return i * 22;
-    })
-    .attr("width", 20)
-    .attr("height", 20)
     .style("fill", function(d) {
         return d;
     })
     .on("click", filterColor);
 
-colorGuide.selectAll("text")
-    .data(palleteText)
-    .enter()
-    .append("text")
-    .attr("x", 25)
-    .attr("y", function(d, i) {
-        return i * 22 + 19;
-    })
-    .style("font-size", 20)
-    .text(function(d) {
-        return d;
-    });
+if (window.innerWidth > 414) {
+    colorGuide.attr("width", 110)
+        .attr("height", 220);
+
+    colorRect.attr("x", 0)
+        .attr("y", function(d, i) {
+            return i * 22;
+        })
+        .attr("width", 20)
+        .attr("height", 20);
+
+    var colorText = colorGuide.append("g")
+        .selectAll("text")
+        .data(palleteText)
+        .enter()
+        .append("text")
+        .attr("x", 25)
+        .attr("y", function(d, i) {
+            return i * 22 + 19;
+        })
+        .style("font-size", 20)
+        .text(function(d) {
+            return d;
+        });
+} else {
+    var rectMargin = 2,
+        rectWidth = Math.round((window.innerWidth - 25 - 22) / 10);
+
+    colorGuide.attr("width", window.innerWidth)
+        .attr("height", 110);
+
+    colorRect.attr("x", function(d, i) {
+            return i * (rectWidth);
+        })
+        .attr("y", 0)
+        .attr("width", rectWidth)
+        .attr("height", 10);
+
+
+    var colorText = colorGuide.append("g")
+        .selectAll("text")
+        .data(palleteTextShort)
+        .enter()
+        .append("text")
+        .attr("x", function(d, i) {
+            return (i + 1) * rectWidth;
+        })
+        .attr("y", 27)
+        .style("font-size", 18)
+        .text(function(d) {
+            return d;
+        });
+}
 
 
 function init(error, taipei) {
