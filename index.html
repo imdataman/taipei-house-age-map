@@ -12,25 +12,28 @@ body {
 svg#rasterMap {
     position: absolute;
     top: 0px;
-    left: 0;
+    left: 50px;
 }
 
 svg#colorPallete {
     position: absolute;
     top: 100px;
-    left: 65px;
+    left: 100px;
 }
 
 canvas {
     position: absolute;
     top: 0px;
-    left: 0;
+    left: 50px;
 }
 
 select {
     position: absolute;
     top: 50px;
-    left: 50px;
+    left: 100px;
+    width: 150px;
+    font-size: 18px;
+    padding: 10px 5px;
 }
 
 #rasterMap image {
@@ -38,6 +41,13 @@ select {
     filter: alpha(opacity=20);
     /* For IE8 and earlier */
 }
+
+
+/*@media and (max-width: 480px) {
+    body {
+        background-color: lightgreen;
+    }
+}*/
 </style>
 <div id="container">
     <svg id="rasterMap"></svg>
@@ -69,8 +79,8 @@ var pi = Math.PI,
     palleteText = ['45年以上', '41-45年', '36-40年', '31-35年', '26-30年', '21-25年', '16-20年', '11-15年', '6-10年', '5年以下'],
     colorSelected = [];
 
-var width = Math.max(960, window.innerWidth),
-    height = Math.max(500, window.innerHeight);
+var width = window.innerWidth - 100,
+    height = 500;
 
 // Initialize the projection to fit the world in a 1×1 square centered at the origin.
 var projection = d3.geoMercator()
