@@ -3,14 +3,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body {
+    background-color: #f2f5f6;
     margin: 0;
+    font-family: PingFangTC-Regular, sans-serif, "Microsoft JhengHei";
+}
+
+#header,
+#footer {
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+#header a,
+#footer a {
+    color: black;
+}
+
+#header a:hover,
+#footer a:hover {
+    text-decoration: none;
+    color: #ff5733;
+}
+
+#header p,
+li {
+    font-size: 18px;
 }
 
 #container {
     position: relative;
+    height: 500px;
 }
 
 svg#rasterMap {
+    background-color: white;
     position: absolute;
     top: 0px;
     left: 50px;
@@ -32,7 +58,6 @@ select {
     position: absolute;
     top: 50px;
     left: 100px;
-    width: 150px;
     font-size: 18px;
     padding: 10px 5px;
 }
@@ -43,7 +68,25 @@ select {
     /* For IE8 and earlier */
 }
 
+#copyright {
+    position: absolute;
+    bottom: 0;
+    right: 60px;
+    font-size: 16px;
+}
+
+#footer {
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 @media only screen and (max-width: 415px) {
+    #header,
+    #footer {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
     svg#rasterMap {
         left: 12px;
     }
@@ -58,11 +101,28 @@ select {
         left: 12px;
     }
     select {
-        top: 40px;
+        top: 55px;
         left: 30px;
+        padding: 0;
+    }
+    #copyright {
+        right: 30px;
+        font-size: 10px;
     }
 }
 </style>
+<div id="header">
+    <h1>台北市屋齡地圖</h1>
+    <p>走在台北市，是不是常常遇見不知道多少年歷史的老房子呢？想買房成家的你，是不是也想知道台北市各地區的屋齡水準呢？</p>
+    <p>以下的「台北市屋齡地圖」，利用<a href="http://data.taipei/opendata/datalist/datasetMeta?oid=c876ff02-af2e-4eb8-bd33-d444f5052733">台北市政府開放的全市建築物使用執照資料</a>，找出台北市20餘萬個門牌地址所在的建築物的屋齡，並將門牌地址轉成經緯度，繪製到地圖上，用視覺化的方式帶讀者了解台北市屋齡。</p>
+    <p>使用說明：
+        <ul>
+            <li>從選單中選擇行政區</li>
+            <li>點擊圖例的不同顏色方塊，可以篩選地圖要呈現哪些屋齡區間的建築</li>
+            <li>用滑鼠滾輪或手機手勢拖拉放大縮小地圖</li>
+        </ul>
+    </p>
+</div>
 <div id="container">
     <svg id="rasterMap"></svg>
     <canvas></canvas>
@@ -81,6 +141,10 @@ select {
         <option value='中山區'>中山區</option>
         <option value='松山區'>松山區</option>
     </select>
+    <div id="copyright">&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</div>
+</div>
+<div id="footer">
+    本地圖使用的原始資料和程式碼已上傳<a href="https://github.com/imdataman/taipei-house-age-map">Github</a>。
 </div>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-tile.v0.0.min.js"></script>
@@ -91,10 +155,11 @@ var pi = Math.PI,
     radius = 2.5,
     colorPallete = ['#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#d1e5f0', '#92c5de', '#4393c3', '#2166ac', '#053061'],
     palleteText = ['45年以上', '41-45年', '36-40年', '31-35年', '26-30年', '21-25年', '16-20年', '11-15年', '6-10年', '5年以下'],
-    palleteTextShort = ['45', '40', '35', '30', '25', '20', '15', '10', '5'],
+    palleteTextShort = ['45年', '40', '35', '30', '25', '20', '15', '10', '5'],
     colorSelected = [];
 
-var width = window.innerWidth > 414 ? window.innerWidth - 100 : window.innerWidth - 25,
+var baseWidth = window.innerWidth;
+width = baseWidth > 414 ? baseWidth - 100 : baseWidth - 25,
     height = 500;
 
 // Initialize the projection to fit the world in a 1×1 square centered at the origin.
@@ -130,7 +195,7 @@ var colorRect = colorGuide.append("g")
     })
     .on("click", filterColor);
 
-if (window.innerWidth > 414) {
+if (baseWidth > 414) {
     colorGuide.attr("width", 110)
         .attr("height", 220);
 
@@ -156,9 +221,9 @@ if (window.innerWidth > 414) {
         });
 } else {
     var rectMargin = 2,
-        rectWidth = Math.round((window.innerWidth - 25 - 22) / 10);
+        rectWidth = Math.round((baseWidth - 25 - 22) / 10);
 
-    colorGuide.attr("width", window.innerWidth)
+    colorGuide.attr("width", baseWidth)
         .attr("height", 110);
 
     colorRect.attr("x", function(d, i) {
@@ -206,7 +271,7 @@ function init(error, taipei) {
     canvas.call(zoom)
         .call(zoom.transform, d3.zoomIdentity
             .translate(width / 2, height / 2)
-            .scale(1 << 22)
+            .scale(baseWidth > 414 ? 1 << 22 : 1 << 21)
             .translate(-center[0], -center[1]));
 }
 
